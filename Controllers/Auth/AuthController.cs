@@ -23,9 +23,7 @@ public sealed class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest req, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Password))
-            return BadRequest("Email and password are required.");
-
+       
         var email = req.Email.Trim().ToLowerInvariant();
 
         var user = await _db.Users
