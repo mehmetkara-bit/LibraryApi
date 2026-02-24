@@ -4,6 +4,7 @@ using LibraryApi.Infrastructure.Auth;
 using LibraryApi.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LibraryApi.Controllers;
 
@@ -45,4 +46,12 @@ public sealed class AuthController : ControllerBase
             ExpiresAtUtc = expiresAtUtc
         });
     }
+
+    [Authorize]
+    [HttpGet("test")]
+    public IActionResult Test()
+    {
+    return Ok("Authorized!");
+    }
+    
 }

@@ -3,12 +3,51 @@ using LibraryApi.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+//builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Library API",
+        Version = "v1"
+    });
+
+    // 1. JWT Güvenlik Tanımı
+    var securityScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "JWT Authorization header. Örnek: Bearer {token}",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer", // Küçük harf 'bearer' önemli
+        BearerFormat = "JWT",
+        Reference = new OpenApiReference
+        {
+            Type = ReferenceType.SecurityScheme,
+            Id = "Bearer"
+        }
+    };
+
+    options.AddSecurityDefinition("Bearer", securityScheme);
+
+    // 2. Güvenlik Gereksinimi (Global olarak tüm endpoint'lere ekler)
+    var securityRequirement = new OpenApiSecurityRequirement
+    {
+        { securityScheme, new string[] { } }
+    };
+
+    options.AddSecurityRequirement(securityRequirement);
+});
+
+
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
