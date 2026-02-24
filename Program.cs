@@ -39,7 +39,42 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddSingleton<LibraryApi.Infrastructure.Auth.JwtTokenService>();
+
 var app = builder.Build();
+
+//geçici test kullanıcısı
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+
+    if (!await db.Users.AnyAsync())
+    {
+        var admin = new LibraryApi.Domain.Entities.User
+        {
+            Email = "admin@local",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+            Role = LibraryApi.Domain.Enums.UserRole.Staff,
+            IsActive = true,
+            CreatedDate = DateTime.UtcNow
+        };
+
+        db.Users.Add(admin);
+        await db.SaveChangesAsync();
+
+        db.Staff.Add(new LibraryApi.Domain.Entities.Staff
+        {
+            Id = admin.Id,
+            FirstName = "Admin",
+            LastName = "User",
+            RoleType = LibraryApi.Domain.Enums.StaffRoleType.Admin
+        });
+
+        await db.SaveChangesAsync();
+    }
+}
+
 
 if (app.Environment.IsDevelopment())
 {
