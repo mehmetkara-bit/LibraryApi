@@ -5,6 +5,8 @@ using LibraryApi.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+
 
 namespace LibraryApi.Controllers;
 
@@ -51,7 +53,10 @@ public sealed class AuthController : ControllerBase
     [HttpGet("test")]
     public IActionResult Test()
     {
-    return Ok("Authorized!");
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var role = User.FindFirstValue(ClaimTypes.Role);
+    return Ok(new { userId, role });
     }
+
     
 }

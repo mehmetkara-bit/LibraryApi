@@ -1,6 +1,24 @@
 @LibraryApi_HostAddress = http://localhost:5094
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJhZG1pbkBsb2NhbCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWVpZGVudGlmaWVyIjoiMSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN0YWZmIiwiZXhwIjoxNzcyMTM1NzY3LCJpc3MiOiJMaWJyYXJ5QXBpIiwiYXVkIjoiTGlicmFyeUFwaSJ9.OvWUE8TVKLNR3lunvJkG7ZTd5X8b3SLxctzoc11lMgI
 
+### olmayan,kaldırdığımız otomatik url
 GET {{LibraryApi_HostAddress}}/weatherforecast/
 Accept: application/json
 
-###
+### token al
+POST {{LibraryApi_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@local",
+  "password": "Admin123!"
+}
+
+### tokensiz test
+GET   {{LibraryApi_HostAddress}}/api/auth/test
+Accept: application/json
+
+### Token ile test
+GET   {{LibraryApi_HostAddress}}/api/auth/test
+Accept: application/json
+Authorization: Bearer {{token}}
