@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using LibraryApi.Domain.Entities;
+using LibraryApi.Domain.Enums;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -90,6 +92,7 @@ using (var scope = app.Services.CreateScope())
 
     if (!await db.Users.AnyAsync())
     {
+        //admin staff
         var admin = new LibraryApi.Domain.Entities.User
         {
             Email = "admin@local",
@@ -109,6 +112,31 @@ using (var scope = app.Services.CreateScope())
             LastName = "User",
             RoleType = LibraryApi.Domain.Enums.StaffRoleType.Admin
         });
+
+        // Member staff
+        var memberUser = new User
+        {
+            Email = "member@local",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Member123!"),
+            Role = UserRole.Member,
+            IsActive = true,
+            CreatedDate = DateTime.UtcNow
+        };
+        db.Users.Add(memberUser);
+        await db.SaveChangesAsync();
+
+        db.Members.Add(new Member
+        {
+            Id = memberUser.Id,
+            FirstName = "Test",
+            LastName = "Member",
+            Phone = null,
+            Address = null,
+            RegistrationDate = DateTime.UtcNow
+        });
+
+
+
 
         await db.SaveChangesAsync();
     }

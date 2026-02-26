@@ -67,4 +67,13 @@ public sealed class AuthController : ControllerBase
     return Ok(new { userId, role });
     }*/
     
+
+    [Authorize(Roles = "Staff")]
+    [HttpGet("staff-only")]
+    public IActionResult StaffOnly()
+    {
+    return Ok("Hello Staff!");
+    }
+
+    
 }
