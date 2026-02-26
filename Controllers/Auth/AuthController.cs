@@ -5,8 +5,6 @@ using LibraryApi.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
-
 
 namespace LibraryApi.Controllers;
 
@@ -53,10 +51,20 @@ public sealed class AuthController : ControllerBase
     [HttpGet("test")]
     public IActionResult Test()
     {
+    return Ok("Authorized!");
+    }
+
+
+    //Test metodunda hangi kullanıcı login olmuş 
+    //görmek istersen bu hake getirebilirsin
+    /* 
+    [Authorize]
+    [HttpGet("test")]
+    public IActionResult Test()
+    {
     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
     var role = User.FindFirstValue(ClaimTypes.Role);
     return Ok(new { userId, role });
-    }
-
+    }*/
     
 }
