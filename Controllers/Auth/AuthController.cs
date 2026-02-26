@@ -53,5 +53,10 @@ public sealed class AuthController : ControllerBase
     {
     return Ok("Authorized!");
     }
-    
+
+    /*
+    [Authorize(Roles = "Staff")]
+    [HttpGet("test")]
+    public IActionResult Test() => Ok("Authorized!");
+    */
 }

@@ -1,60 +1,22 @@
 using System.Text;
 using LibraryApi.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-
+using Scalar.AspNetCore;
+using Microsoft.OpenApi; 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
-
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "Library API",
-        Version = "v1"
-    });
-
-    // 1. JWT Güvenlik Tanımı
-    var securityScheme = new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Description = "JWT Authorization header. Örnek: Bearer {token}",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer", // Küçük harf 'bearer' önemli
-        BearerFormat = "JWT",
-        Reference = new OpenApiReference
-        {
-            Type = ReferenceType.SecurityScheme,
-            Id = "Bearer"
-        }
-    };
-
-    options.AddSecurityDefinition("Bearer", securityScheme);
-
-    // 2. Güvenlik Gereksinimi (Global olarak tüm endpoint'lere ekler)
-    var securityRequirement = new OpenApiSecurityRequirement
-    {
-        { securityScheme, new string[] { } }
-    };
-
-    options.AddSecurityRequirement(securityRequirement);
-});
-
-
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-// JWT
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var key = jwtSection["Key"]!;
 
@@ -68,7 +30,6 @@ builder.Services
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-
             ValidIssuer = jwtSection["Issuer"],
             ValidAudience = jwtSection["Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
@@ -77,12 +38,34 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
-
 builder.Services.AddSingleton<LibraryApi.Infrastructure.Auth.JwtTokenService>();
+
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((
+        Microsoft.OpenApi.OpenApiDocument doc,
+        Microsoft.AspNetCore.OpenApi.OpenApiDocumentTransformerContext ctx,
+        CancellationToken ct) =>
+    {
+        doc.Info = new Microsoft.OpenApi.OpenApiInfo
+        {
+            Title = "Library API",
+            Version = "v1"
+        };
+        return Task.CompletedTask;
+    });
+
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
 
 var app = builder.Build();
 
-//geçici test kullanıcısı
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();            
+    app.MapScalarApiReference(); 
+}
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -114,15 +97,41 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 app.Run();
+
+internal sealed class BearerSecuritySchemeTransformer(
+    Microsoft.AspNetCore.Authentication.IAuthenticationSchemeProvider authenticationSchemeProvider
+) : Microsoft.AspNetCore.OpenApi.IOpenApiDocumentTransformer
+{
+    public async Task TransformAsync(
+        Microsoft.OpenApi.OpenApiDocument document,
+        Microsoft.AspNetCore.OpenApi.OpenApiDocumentTransformerContext context,
+        CancellationToken cancellationToken)
+    {
+        var schemes = await authenticationSchemeProvider.GetAllSchemesAsync();
+
+        if (!schemes.Any(s => s.Name == Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme))
+            return;
+
+        document.Info ??= new Microsoft.OpenApi.OpenApiInfo
+        {
+            Title = "Library API",
+            Version = "v1"
+        };
+
+        document.Components ??= new Microsoft.OpenApi.OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, Microsoft.OpenApi.IOpenApiSecurityScheme>();
+        document.Components.SecuritySchemes["Bearer"] = new Microsoft.OpenApi.OpenApiSecurityScheme
+        {
+            Type = Microsoft.OpenApi.SecuritySchemeType.Http,
+            Scheme = "bearer",
+            In = Microsoft.OpenApi.ParameterLocation.Header,
+            BearerFormat = "JWT"
+        };
+    }
+    
+}
