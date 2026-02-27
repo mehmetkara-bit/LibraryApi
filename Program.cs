@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using LibraryApi.Domain.Entities;
 using LibraryApi.Domain.Enums;
+using LibraryApi.Infrastructure.Catalog;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -56,6 +57,9 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+builder.Services.AddScoped<IBookService, BookService>();
+
+
 // JWT
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var key = jwtSection["Key"]!;
@@ -83,6 +87,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddSingleton<LibraryApi.Infrastructure.Auth.JwtTokenService>();
 
 var app = builder.Build();
+
+
 
 //geçici test kullanıcısı
 using (var scope = app.Services.CreateScope())
@@ -136,11 +142,18 @@ using (var scope = app.Services.CreateScope())
         });
 
 
-
-
         await db.SaveChangesAsync();
     }
+
+    await DbSeeder.SeedAsync(db);
 }
+
+//hemen yukarıda await DbSeeder.SeedAsync(db); diyerek hallettim
+/*using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DbSeeder.SeedAsync(db);
+}*/
 
 
 if (app.Environment.IsDevelopment())
