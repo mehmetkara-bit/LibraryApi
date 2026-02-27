@@ -1,11 +1,7 @@
 @LibraryApi_HostAddress = http://localhost:5094
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZW1haWwiOiJtZW1iZXJAbG9jYWwiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJNZW1iZXIiLCJleHAiOjE3NzIxMzkwOTcsImlzcyI6IkxpYnJhcnlBcGkiLCJhdWQiOiJMaWJyYXJ5QXBpIn0.mjGpszYiafqGtzhu3hZL1JHSWFO4seyA_iE6ejlXg5g
-### olmayan,kaldırdığımız otomatik url
-GET {{LibraryApi_HostAddress}}/weatherforecast/
-Accept: application/json
 
 ### admin token al
-# @name login
+# @name adminLogin
 POST {{LibraryApi_HostAddress}}/api/auth/login
 Content-Type: application/json
 
@@ -13,19 +9,6 @@ Content-Type: application/json
   "email": "admin@local",
   "password": "Admin123!"
 }
-
-### tokensiz test
-GET   {{LibraryApi_HostAddress}}/api/auth/test
-Accept: application/json
-
-### Token ile test
-GET   {{LibraryApi_HostAddress}}/api/auth/test
-Accept: application/json
-Authorization: Bearer {{login.response.body.accessToken}}
-
-### staff-only (token ile)
-GET {{LibraryApi_HostAddress}}/api/auth/staff-only
-Authorization: Bearer {{memberLogin.response.body.accessToken}}
 
 ### member token al
 # @name memberLogin
@@ -36,3 +19,29 @@ Content-Type: application/json
   "email": "member@local",
   "password": "Member123!"
 }
+
+
+### tokensiz test(401 beklenir)
+GET   {{LibraryApi_HostAddress}}/api/auth/test
+Accept: application/json
+
+### admin token ile test(200 beklenir)
+GET   {{LibraryApi_HostAddress}}/api/auth/test
+Accept: application/json
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+### staff-only Member token ile (403 beklenir)
+GET {{LibraryApi_HostAddress}}/api/auth/staff-only
+Authorization: Bearer {{memberLogin.response.body.accessToken}}
+
+### Staff-only (admin token ile) (200 beklenir)
+GET {{LibraryApi_HostAddress}}/api/auth/staff-only
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+### WhoAmI (admin token ile)
+GET {{LibraryApi_HostAddress}}/api/auth/whoami
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+### WhoAmI (member token ile)
+GET {{LibraryApi_HostAddress}}/api/auth/whoami
+Authorization: Bearer {{memberLogin.response.body.accessToken}}

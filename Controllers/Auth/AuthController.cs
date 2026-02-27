@@ -5,6 +5,7 @@ using LibraryApi.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace LibraryApi.Controllers;
 
@@ -72,8 +73,35 @@ public sealed class AuthController : ControllerBase
     [HttpGet("staff-only")]
     public IActionResult StaffOnly()
     {
-    return Ok("Hello Staff!");
+       return Ok("Hello Staff!");
     }
 
-    
+
+    [Authorize]
+    [HttpGet("whoami")]
+    public IActionResult WhoAmI()
+    {
+        // sık kullanılanlar
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var role = User.FindFirstValue(ClaimTypes.Role);
+
+        // email claim'i bazen ClaimTypes.Email, bazen JwtRegisteredClaimNames.Email olarak gelebilir
+        var email =
+        User.FindFirstValue(ClaimTypes.Email)
+        ?? User.FindFirstValue("email");
+
+        // tüm claim'leri görmek için
+        var claims = User.Claims
+           .Select(c => new { c.Type, c.Value })
+           .ToList();
+
+        return Ok(new
+        {
+           userId,
+           email,
+           role,
+           claims
+        });
+    }
+
 }
