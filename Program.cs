@@ -7,6 +7,8 @@ using Microsoft.OpenApi.Models;
 using LibraryApi.Domain.Entities;
 using LibraryApi.Domain.Enums;
 using LibraryApi.Infrastructure.Catalog;
+using LibraryApi.Infrastructure.Circulation;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -59,6 +61,7 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IBookCopyService, BookCopyService>();
+builder.Services.AddScoped<ILoanService, LoanService>();
 
 
 // JWT
