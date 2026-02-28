@@ -62,6 +62,7 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IBookCopyService, BookCopyService>();
 builder.Services.AddScoped<ILoanService, LoanService>();
+builder.Services.AddScoped<IFineService, FineService>();
 
 
 // JWT
