@@ -15,14 +15,14 @@ public class LoanService : ILoanService
         _db = db;
     }
 
-    public async Task<LoanResponse> BorrowAsync(LoanBorrowRequest request)
+    public async Task<LoanResponse> BorrowAsync(int staffId, LoanBorrowRequest request)
     {
         // Member var mı?
         var memberExists = await _db.Members.AnyAsync(m => m.Id == request.MemberId);
         if (!memberExists) throw new InvalidOperationException("Member not found.");
 
         // Staff var mı?
-        var staffExists = await _db.Staff.AnyAsync(s => s.Id == request.StaffId);
+        var staffExists = await _db.Staff.AnyAsync(s => s.Id == staffId);
         if (!staffExists) throw new InvalidOperationException("Staff not found.");
 
         // Copy var mı + status uygun mu?
@@ -40,7 +40,7 @@ public class LoanService : ILoanService
         {
             MemberId = request.MemberId,
             BookCopyId = request.BookCopyId,
-            StaffId = request.StaffId,
+            StaffId = staffId,
             LoanDate = request.LoanDate,
             DueDate = request.DueDate,
 
@@ -57,10 +57,10 @@ public class LoanService : ILoanService
 
         return ToResponse(loan);
     }
-
-    public async Task<LoanResponse> ReturnAsync(int loanId, LoanReturnRequest request)
+    
+    public async Task<LoanResponse> ReturnAsync(int staffId, int loanId, LoanReturnRequest request)
     {
-        var staffExists = await _db.Staff.AnyAsync(s => s.Id == request.StaffId);
+        var staffExists = await _db.Staff.AnyAsync(s => s.Id == staffId);
         if (!staffExists) throw new InvalidOperationException("Staff not found.");
 
         var loan = await _db.Loans.FirstOrDefaultAsync(l => l.Id == loanId);
