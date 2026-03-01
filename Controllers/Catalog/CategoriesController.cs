@@ -2,6 +2,7 @@ using LibraryApi.Contracts.Categories;
 using LibraryApi.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using LibraryApi.Exceptions;
 
 namespace LibraryApi.Controllers.Catalog;
 
@@ -32,4 +33,5 @@ public class CategoriesController : ControllerBase
 
         return Ok(list);
     }
+
 }

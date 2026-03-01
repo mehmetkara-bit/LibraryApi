@@ -1,6 +1,10 @@
 @LibraryApi_HostAddress = http://localhost:5094
 
-### admin token al
+############################################
+### AUTH
+############################################
+
+### Admin token al
 # @name adminLogin
 POST {{LibraryApi_HostAddress}}/api/auth/login
 Content-Type: application/json
@@ -10,7 +14,7 @@ Content-Type: application/json
   "password": "Admin123!"
 }
 
-### member token al
+### Member token al
 # @name memberLogin
 POST {{LibraryApi_HostAddress}}/api/auth/login
 Content-Type: application/json
@@ -45,3 +49,145 @@ Authorization: Bearer {{adminLogin.response.body.accessToken}}
 ### WhoAmI (member token ile)
 GET {{LibraryApi_HostAddress}}/api/auth/whoami
 Authorization: Bearer {{memberLogin.response.body.accessToken}}
+
+############################################
+### CATALOG (seed kontrol)
+############################################
+
+### Authors list (seed)
+# @name getAuthors
+GET {{LibraryApi_HostAddress}}/api/authors
+Accept: application/json
+
+### Categories list (seed)
+# @name getCategories
+GET {{LibraryApi_HostAddress}}/api/categories
+Accept: application/json
+
+############################################
+### BOOKS (CRUD) - admin token ile
+############################################
+
+### Book Create (admin token ile)
+# @name createBook
+POST {{LibraryApi_HostAddress}}/api/books
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+{
+  "title": "Clean Code",
+  "isbn": "9780132350884",
+  "publishYear": 2008,
+  "pageCount": 464,
+  "categoryId": 1,
+  "authorIds": [1]
+}
+
+### Book GetById (createBook -> id)
+# @name getBookById
+GET {{LibraryApi_HostAddress}}/api/books/{{createBook.response.body.id}}
+Accept: application/json
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+### Book Update (yazarları 1,2 yap)
+# @name updateBook
+PUT {{LibraryApi_HostAddress}}/api/books/{{createBook.response.body.id}}
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+{
+  "title": "Clean Code (Updated)",
+  "isbn": "9780132350884",
+  "publishYear": 2008,
+  "pageCount": 500,
+  "categoryId": 1,
+  "authorIds": [1,2]
+}
+
+### Book List
+# @name listBooks
+GET {{LibraryApi_HostAddress}}/api/books
+Accept: application/json
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+############################################
+### BOOK COPIES - admin token ile
+############################################
+
+### Create 3 copies for the created book
+# @name createCopies
+POST {{LibraryApi_HostAddress}}/api/books/{{createBook.response.body.id}}/copies
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+{
+  "count": 3,
+  "shelfLocation": "A-3"
+}
+
+### List copies of the book
+# @name listCopies
+GET {{LibraryApi_HostAddress}}/api/books/{{createBook.response.body.id}}/copies
+Accept: application/json
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+############################################
+### LOANS - staff-only (admin token)
+############################################
+
+### Borrow first copy (admin token) - staffId token'dan gelecek
+# @name borrowLoan
+POST {{LibraryApi_HostAddress}}/api/loans/borrow
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+{
+  "memberId": 2,
+  "bookCopyId": {{listCopies.response.body[0].id}},
+  "loanDate": "2026-02-28T12:00:00Z",
+  "dueDate": "2026-03-14T12:00:00Z"
+}
+
+### Active loans list
+# @name activeLoans
+GET {{LibraryApi_HostAddress}}/api/loans/active
+Accept: application/json
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+### Loan detail (borrowLoan -> id)
+# @name loanDetail
+GET {{LibraryApi_HostAddress}}/api/loans/{{borrowLoan.response.body.id}}
+Accept: application/json
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+### Return loan (borrowLoan -> id)
+# @name returnLoan
+POST {{LibraryApi_HostAddress}}/api/loans/{{borrowLoan.response.body.id}}/return
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+{
+  "returnDate": "2026-02-28T13:00:00Z"
+}
+
+### Active loans list after return (should be empty or reduced)
+# @name activeLoansAfterReturn
+GET {{LibraryApi_HostAddress}}/api/loans/active
+Accept: application/json
+Authorization: Bearer {{adminLogin.response.body.accessToken}}
+
+############################################
+### LOANS - Member token ile (beklenen: 403)
+############################################
+
+### Borrow with member token (403 beklenir)
+POST {{LibraryApi_HostAddress}}/api/loans/borrow
+Content-Type: application/json
+Authorization: Bearer {{memberLogin.response.body.accessToken}}
+
+{
+  "memberId": 2,
+  "bookCopyId": {{listCopies.response.body[1].id}},
+  "loanDate": "2026-02-28T12:00:00Z",
+  "dueDate": "2026-03-14T12:00:00Z"
+}

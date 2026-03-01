@@ -8,14 +8,14 @@ using LibraryApi.Domain.Entities;
 using LibraryApi.Domain.Enums;
 using LibraryApi.Infrastructure.Catalog;
 using LibraryApi.Infrastructure.Circulation;
-
+using LibraryApi.Middlewares;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddTransient<GlobalExceptionMiddleware>();
 builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -93,7 +93,7 @@ builder.Services.AddSingleton<LibraryApi.Infrastructure.Auth.JwtTokenService>();
 
 var app = builder.Build();
 
-
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 //geçici test kullanıcısı
 using (var scope = app.Services.CreateScope())
